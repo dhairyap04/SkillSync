@@ -423,6 +423,236 @@ const LandingPage: React.FC = () => {
         </div>
       </section>
 
+      {/* About Section */}
+      <section id="about" className="section-padding bg-white">
+        <div className="container-custom">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="text-center mb-16"
+          >
+            <h2 className="text-4xl font-bold mb-4">
+              About SkillSync
+            </h2>
+            <p className="text-xl text-neutral-600 max-w-3xl mx-auto">
+              We're on a mission to democratize career development by connecting ambitious professionals with expert mentors and providing the tools they need to succeed.
+            </p>
+          </motion.div>
+
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <motion.div
+              initial={{ opacity: 0, x: -50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6 }}
+            >
+              <h3 className="text-3xl font-bold mb-6">Our Story</h3>
+              <div className="space-y-4 text-neutral-700">
+                <p>
+                  Founded in 2024, SkillSync was born from a simple observation: career growth shouldn't be limited by your network or resources. We believe everyone deserves access to world-class mentorship and personalized learning paths.
+                </p>
+                <p>
+                  Our platform combines the power of AI-driven matching with human expertise to create meaningful mentor-student relationships that drive real career outcomes.
+                </p>
+                <p>
+                  Today, we're proud to support thousands of professionals across industries, from fresh graduates to seasoned executives looking to level up their skills.
+                </p>
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, x: 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="grid grid-cols-2 gap-6"
+            >
+              <div className="text-center p-6 bg-primary-50 rounded-xl">
+                <div className="text-3xl font-bold text-primary-600 mb-2">50K+</div>
+                <div className="text-neutral-600">Active Users</div>
+              </div>
+              <div className="text-center p-6 bg-teal-50 rounded-xl">
+                <div className="text-3xl font-bold text-teal-600 mb-2">2.5K+</div>
+                <div className="text-neutral-600">Expert Mentors</div>
+              </div>
+              <div className="text-center p-6 bg-orange-50 rounded-xl">
+                <div className="text-3xl font-bold text-orange-600 mb-2">15K+</div>
+                <div className="text-neutral-600">Success Stories</div>
+              </div>
+              <div className="text-center p-6 bg-success-50 rounded-xl">
+                <div className="text-3xl font-bold text-success-600 mb-2">94%</div>
+                <div className="text-neutral-600">Success Rate</div>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* Pricing Section */}
+      <section id="pricing" className="section-padding bg-neutral-50">
+        <div className="container-custom">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="text-center mb-16"
+          >
+            <h2 className="text-4xl font-bold mb-4">
+              Simple, Transparent Pricing
+            </h2>
+            <p className="text-xl text-neutral-600 max-w-3xl mx-auto">
+              Choose the plan that fits your career development needs. Start free and upgrade as you grow.
+            </p>
+          </motion.div>
+
+          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            {/* Free Plan */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+            >
+              <Card className="h-full">
+                <CardContent className="p-8 text-center">
+                  <h3 className="text-2xl font-bold mb-4">Free</h3>
+                  <div className="text-4xl font-bold mb-6">
+                    $0<span className="text-lg text-neutral-500">/month</span>
+                  </div>
+                  <p className="text-neutral-600 mb-8">Perfect for getting started with your career development journey.</p>
+                  
+                  <ul className="space-y-4 mb-8 text-left">
+                    <li className="flex items-center">
+                      <CheckCircle className="h-5 w-5 text-success-500 mr-3" />
+                      <span>Track up to 5 skills</span>
+                    </li>
+                    <li className="flex items-center">
+                      <CheckCircle className="h-5 w-5 text-success-500 mr-3" />
+                      <span>Set 3 career goals</span>
+                    </li>
+                    <li className="flex items-center">
+                      <CheckCircle className="h-5 w-5 text-success-500 mr-3" />
+                      <span>Access basic resources</span>
+                    </li>
+                    <li className="flex items-center">
+                      <CheckCircle className="h-5 w-5 text-success-500 mr-3" />
+                      <span>Community support</span>
+                    </li>
+                  </ul>
+                  
+                  <Link to="/signup">
+                    <Button variant="secondary" className="w-full">
+                      Get Started Free
+                    </Button>
+                  </Link>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            {/* Pro Plan */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+            >
+              <Card className="h-full border-2 border-primary-500 relative">
+                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                  <Badge variant="primary" className="px-4 py-1">
+                    Most Popular
+                  </Badge>
+                </div>
+                <CardContent className="p-8 text-center">
+                  <h3 className="text-2xl font-bold mb-4">Pro</h3>
+                  <div className="text-4xl font-bold mb-6">
+                    $29<span className="text-lg text-neutral-500">/month</span>
+                  </div>
+                  <p className="text-neutral-600 mb-8">For professionals serious about accelerating their career growth.</p>
+                  
+                  <ul className="space-y-4 mb-8 text-left">
+                    <li className="flex items-center">
+                      <CheckCircle className="h-5 w-5 text-success-500 mr-3" />
+                      <span>Unlimited skills tracking</span>
+                    </li>
+                    <li className="flex items-center">
+                      <CheckCircle className="h-5 w-5 text-success-500 mr-3" />
+                      <span>Unlimited goals</span>
+                    </li>
+                    <li className="flex items-center">
+                      <CheckCircle className="h-5 w-5 text-success-500 mr-3" />
+                      <span>Premium resources library</span>
+                    </li>
+                    <li className="flex items-center">
+                      <CheckCircle className="h-5 w-5 text-success-500 mr-3" />
+                      <span>1-on-1 mentor sessions</span>
+                    </li>
+                    <li className="flex items-center">
+                      <CheckCircle className="h-5 w-5 text-success-500 mr-3" />
+                      <span>Priority support</span>
+                    </li>
+                    <li className="flex items-center">
+                      <CheckCircle className="h-5 w-5 text-success-500 mr-3" />
+                      <span>Advanced analytics</span>
+                    </li>
+                  </ul>
+                  
+                  <Link to="/signup">
+                    <Button variant="primary" className="w-full">
+                      Start Pro Trial
+                    </Button>
+                  </Link>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            {/* Enterprise Plan */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+            >
+              <Card className="h-full">
+                <CardContent className="p-8 text-center">
+                  <h3 className="text-2xl font-bold mb-4">Enterprise</h3>
+                  <div className="text-4xl font-bold mb-6">
+                    Custom<span className="text-lg text-neutral-500">/month</span>
+                  </div>
+                  <p className="text-neutral-600 mb-8">For organizations looking to develop their teams at scale.</p>
+                  
+                  <ul className="space-y-4 mb-8 text-left">
+                    <li className="flex items-center">
+                      <CheckCircle className="h-5 w-5 text-success-500 mr-3" />
+                      <span>Everything in Pro</span>
+                    </li>
+                    <li className="flex items-center">
+                      <CheckCircle className="h-5 w-5 text-success-500 mr-3" />
+                      <span>Team management</span>
+                    </li>
+                    <li className="flex items-center">
+                      <CheckCircle className="h-5 w-5 text-success-500 mr-3" />
+                      <span>Custom integrations</span>
+                    </li>
+                    <li className="flex items-center">
+                      <CheckCircle className="h-5 w-5 text-success-500 mr-3" />
+                      <span>Dedicated support</span>
+                    </li>
+                    <li className="flex items-center">
+                      <CheckCircle className="h-5 w-5 text-success-500 mr-3" />
+                      <span>Advanced reporting</span>
+                    </li>
+                    <li className="flex items-center">
+                      <CheckCircle className="h-5 w-5 text-success-500 mr-3" />
+                      <span>SSO & security</span>
+                    </li>
+                  </ul>
+                  
+                  <Button variant="secondary" className="w-full">
+                    Contact Sales
+                  </Button>
+                </CardContent>
+              </Card>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section className="section-padding bg-gradient-primary text-white">
         <div className="container-custom text-center">
