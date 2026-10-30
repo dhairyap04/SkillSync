@@ -24,11 +24,13 @@ import { Badge } from '@/components/ui/Badge'
 import { Avatar } from '@/components/ui/Avatar'
 import { cn } from '@/lib/utils'
 
+import { filterMentors, type ExperienceLevel, type MentorAvailability } from "@/lib/mentorFilters"
+
 const MentorsPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedSkills, setSelectedSkills] = useState<string[]>([])
-  const [selectedExperience, setSelectedExperience] = useState('')
-  const [selectedAvailability, setSelectedAvailability] = useState('')
+  const [selectedExperience, setSelectedExperience] = useState<ExperienceLevel>('')
+  const [selectedAvailability, setSelectedAvailability] = useState<'' | MentorAvailability>('')
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 200])
   const [showFilters, setShowFilters] = useState(false)
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
@@ -65,6 +67,8 @@ const MentorsPage: React.FC = () => {
       reviewCount: 47,
       hourlyRate: 120,
       experience: '8 years',
+      experienceYears: 8,
+      availabilityValue: 'this-week' as const,
       availability: 'Available this week',
       skills: ['Product Management', 'Leadership', 'Strategy', 'Agile'],
       bio: 'Experienced product manager with 8+ years at top tech companies. I help professionals transition into PM roles and advance their careers.',
@@ -87,6 +91,8 @@ const MentorsPage: React.FC = () => {
       reviewCount: 32,
       hourlyRate: 95,
       experience: '6 years',
+      experienceYears: 6,
+      availabilityValue: 'immediate' as const,
       availability: 'Available now',
       skills: ['UI/UX Design', 'Figma', 'Design Systems', 'User Research'],
       bio: 'Passionate about creating user-centered designs. I mentor designers at all levels and help them build strong portfolios.',
@@ -109,6 +115,8 @@ const MentorsPage: React.FC = () => {
       reviewCount: 28,
       hourlyRate: 110,
       experience: '10 years',
+      experienceYears: 10,
+      availabilityValue: 'next-week' as const,
       availability: 'Next week',
       skills: ['React', 'TypeScript', 'Node.js', 'AWS', 'System Design'],
       bio: 'Full-stack engineer with expertise in modern web technologies. I help developers level up their technical skills.',
@@ -131,6 +139,8 @@ const MentorsPage: React.FC = () => {
       reviewCount: 19,
       hourlyRate: 130,
       experience: '7 years',
+      experienceYears: 7,
+      availabilityValue: 'flexible' as const,
       availability: 'Flexible',
       skills: ['Python', 'Machine Learning', 'Data Analysis', 'SQL', 'Statistics'],
       bio: 'Data science leader helping professionals break into the field and advance their analytical skills.',
@@ -144,17 +154,8 @@ const MentorsPage: React.FC = () => {
     }
   ]
 
-  const filteredMentors = mentors.filter(mentor => {
-    const matchesSearch = mentor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         mentor.skills.some(skill => skill.toLowerCase().includes(searchTerm.toLowerCase()))
-    const matchesSkills = selectedSkills.length === 0 || 
-                         selectedSkills.some(skill => mentor.skills.includes(skill))
-    const matchesExperience = !selectedExperience || mentor.experience.includes(selectedExperience)
-    const matchesAvailability = !selectedAvailability || 
-                               mentor.availability.toLowerCase().includes(selectedAvailability)
-    const matchesPrice = mentor.hourlyRate >= priceRange[0] && mentor.hourlyRate <= priceRange[1]
-    
-    return matchesSearch && matchesSkills && matchesExperience && matchesAvailability && matchesPrice
+  const filteredMentors = filterMentors(mentors, {
+    searchTerm, selectedSkills, selectedExperience, selectedAvailability, priceRange
   })
 
   const toggleSkill = (skill: string) => {
@@ -257,7 +258,7 @@ const MentorsPage: React.FC = () => {
                 <label className="label">Experience Level</label>
                 <select
                   value={selectedExperience}
-                  onChange={(e) => setSelectedExperience(e.target.value)}
+                  onChange={(e) => setSelectedExperience(e.target.value as ExperienceLevel)}
                   className="input"
                 >
                   <option value="">Any level</option>
@@ -274,7 +275,7 @@ const MentorsPage: React.FC = () => {
                 <label className="label">Availability</label>
                 <select
                   value={selectedAvailability}
-                  onChange={(e) => setSelectedAvailability(e.target.value)}
+                  onChange={(e) => setSelectedAvailability(e.target.value as '' | MentorAvailability)}
                   className="input"
                 >
                   <option value="">Any time</option>
