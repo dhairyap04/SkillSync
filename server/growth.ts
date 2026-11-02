@@ -3,6 +3,7 @@ import type { DatabaseSync } from 'node:sqlite'
 import { randomBytes, randomUUID } from 'node:crypto'
 import { z } from 'zod'
 import { HttpError } from './errors.js'
+import { registerRecommendationRoutes } from './recommendations.js'
 import { roadmapTemplates } from './roadmapTemplates.js'
 import type { Challenge, Evidence, ExchangeOffer, ExchangeRequest, LearningProfile, Person, ProgressReport, Roadmap } from '../src/types/growth.js'
 import type { MentorListing } from '../src/types/api.js'
@@ -71,39 +72,7 @@ export function registerGrowthRoutes(app: Express, db: DatabaseSync, auth: Reque
     db.prepare('INSERT INTO learning_profiles VALUES (?, ?) ON CONFLICT(user_id) DO UPDATE SET data = excluded.data').run(res.locals.user.id, JSON.stringify(input))
     send(res, input)
   })
-  app.get('/api/mentor-matches', auth, (_req, res) => {
-    const row = db.prepare('SELECT data FROM learning_profiles WHERE user_id = ?').get(res.locals.user.id)
-    const prefs: LearningProfile = row ? JSON.parse(row.data as string) : defaultPreferences
-    const totalWeight = (prefs.skills.length ? 50 : 0) + (prefs.budget !== null ? 20 : 0) + (prefs.availability ? 20 : 0) + (prefs.careerGoal ? 10 : 0)
-    const matches = listMentors().filter(m => m.id !== res.locals.user.id).map(mentor => {
-      let points = 0
-      const reasons: string[] = []
-      const shared = prefs.skills.filter(skill => mentor.skills.some(expertise => key(expertise) === key(skill)))
-      if (prefs.skills.length) {
-        points += 50 * shared.length / prefs.skills.length
-        reasons.push(shared.length ? `Relevant skills: ${shared.join(', ')}` : 'No exact skill overlap')
-      }
-      if (prefs.budget !== null) {
-        const fits = mentor.hourlyRate <= prefs.budget
-        points += fits ? 20 : 0
-        reasons.push(fits ? 'Within your hourly budget' : 'Above your hourly budget')
-      }
-      if (prefs.availability) {
-        const fits = mentor.availabilityValue === prefs.availability || mentor.availabilityValue === 'flexible'
-        points += fits ? 20 : 0
-        reasons.push(fits ? 'Availability matches or is flexible' : 'Availability differs from your preference')
-      }
-      if (prefs.careerGoal) {
-        const words = key(prefs.careerGoal).split(/\W+/).filter(word => word.length > 3)
-        const profile = key([mentor.title, mentor.bio, ...mentor.specializations].join(' '))
-        const overlap = words.some(word => profile.includes(word))
-        points += overlap ? 10 : 0
-        reasons.push(overlap ? 'Profile mentions your career interests' : 'No career-goal keyword match')
-      }
-      return { mentor, score: totalWeight ? Math.round(100 * points / totalWeight) : 0, reasons: reasons.length ? reasons : ['Save your learning preferences to compare mentors'], hasPreferences: totalWeight > 0 }
-    }).sort((a, b) => b.score - a.score || a.mentor.name.localeCompare(b.mentor.name) || a.mentor.id.localeCompare(b.mentor.id))
-    send(res, matches)
-  })
+  registerRecommendationRoutes(app, db, auth, listMentors)
   app.get('/api/connections', auth, (_req, res) => {
     const userId = res.locals.user.id
     const memberships = db.prepare("SELECT student_id, mentor_id FROM mentorships WHERE status = 'active' AND (student_id = ? OR mentor_id = ?)").all(userId, userId)

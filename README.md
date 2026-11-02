@@ -138,14 +138,14 @@ src/
 The Express + SQLite API handles authentication, profiles, mentor discovery,
 skills, goals, mentorship requests, and messages. Signup/login, profile editing,
 skills, goals, mentor discovery, and private messaging are connected to the frontend.
-The resource library remains sample content. See the [backend guide](server/README.md) for setup, endpoints,
+The resource library ranks first-party learning material using interests, active goals, skill gaps, and personal feedback. See the [backend guide](server/README.md) for setup, endpoints,
 configuration, deployment, and remaining limitations.
 
 ## Practice, prove, and share
 
 - **Skill challenges:** mentors assign briefs, students submit linked work, and reviewers accept or request revisions with a preserved history.
 - **Skill passports:** publish mentor-reviewed evidence through a revocable link; private by default.
-- **Explainable matching:** compare relevant skills, hourly budget, availability, and career interests with visible scoring reasons.
+- **Explainable matching:** recognize equivalent/related skills, compare goal text, and adapt rankings from explicit personal feedback with visible reasons.
 - **Career roadmaps:** choose a starting template and customize its saved goals and milestones.
 - **Peer exchanges:** match complementary teaching/learning offers, accept requests, and start private conversations.
 - **Progress reports:** see submitted and accepted challenges, revision rounds, endorsed skills, and activity timelines.
@@ -191,7 +191,7 @@ Using Zustand for lightweight, type-safe state management:
 
 - **Auth Store** - User authentication and profile data
 - **UI Store** - Theme, sidebar state, notifications
-- **Data Stores** - Skills, goals, mentors, resources (ready for API integration)
+- **Saved Data** - Skills, goals, mentors, resources, feedback, and learning progress use authenticated APIs
 
 ## 🎯 Key Pages
 

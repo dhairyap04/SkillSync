@@ -9,7 +9,7 @@ export function openDatabase(filename: string) {
   db.exec('PRAGMA journal_mode = WAL')
   db.exec('PRAGMA busy_timeout = 5000')
   const version = Number(db.prepare('PRAGMA user_version').get()!.user_version)
-  if (version > 2) { db.close(); throw new Error('Database schema is newer than this server supports') }
+  if (version > 3) { db.close(); throw new Error('Database schema is newer than this server supports') }
   db.exec(`
     BEGIN;
     CREATE TABLE IF NOT EXISTS users (
@@ -60,7 +60,17 @@ export function openDatabase(filename: string) {
       id TEXT PRIMARY KEY, requester_id TEXT NOT NULL REFERENCES users(id),
       recipient_id TEXT NOT NULL REFERENCES users(id), pair_key TEXT NOT NULL UNIQUE, data TEXT NOT NULL
     );
-    PRAGMA user_version = 2;
+    CREATE TABLE IF NOT EXISTS recommendation_feedback (
+      user_id TEXT NOT NULL REFERENCES users(id), kind TEXT NOT NULL CHECK(kind IN ('mentor', 'resource')),
+      target_id TEXT NOT NULL, value TEXT NOT NULL CHECK(value IN ('helpful', 'not_for_me')),
+      features TEXT NOT NULL, updated_at TEXT NOT NULL, PRIMARY KEY(user_id, kind, target_id)
+    );
+    CREATE TABLE IF NOT EXISTS resource_states (
+      user_id TEXT NOT NULL REFERENCES users(id), resource_id TEXT NOT NULL,
+      saved INTEGER NOT NULL DEFAULT 0, completed INTEGER NOT NULL DEFAULT 0,
+      PRIMARY KEY(user_id, resource_id)
+    );
+    PRAGMA user_version = 3;
     COMMIT;
   `)
   return db

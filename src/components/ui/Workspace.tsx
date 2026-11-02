@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { cloneElement, isValidElement, useId, type ReactElement, type ReactNode } from 'react'
 import { Button } from './Button'
 
 export function Workspace({ title, description, children }: { title: string; description: string; children: ReactNode }) {
@@ -8,7 +8,10 @@ export function Panel({ children, title }: { children: ReactNode; title?: string
   return <section className="rounded-xl border border-neutral-200 bg-white p-5 sm:p-6 shadow-sm space-y-4">{title && <h2 className="text-xl font-semibold">{title}</h2>}{children}</section>
 }
 export function Field({ label, children }: { label: string; children: ReactNode }) {
-  return <label className="block text-sm font-medium text-neutral-700 space-y-1"><span>{label}</span>{children}</label>
+  const generatedId = useId()
+  const child = isValidElement(children) ? children as ReactElement<{ id?: string }> : null
+  const id = child?.props.id ?? generatedId
+  return <div className="block text-sm font-medium text-neutral-700 space-y-1"><label htmlFor={id}>{label}</label>{child ? cloneElement(child, { id }) : children}</div>
 }
 export function LoadState({ loading, error, refresh }: { loading: boolean; error: string; refresh: () => void }) {
   if (error) return <div role="alert" className="rounded-lg border border-red-200 p-4 text-red-700">{error} <Button variant="secondary" size="sm" onClick={refresh}>Retry</Button></div>

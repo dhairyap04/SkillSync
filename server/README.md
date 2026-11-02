@@ -3,8 +3,8 @@
 Express + TypeScript with SQLite persistence. Requires Node 22.13 or later.
 Node's built-in SQLite driver may print an experimental-feature notice on Node
 22. No database service or native compilation is required. Tables are created on
-first startup; this is schema version 2. Startup performs an additive, transactional upgrade
-from the initial schema without removing existing accounts or records.
+first startup; this is schema version 3. Startup performs an additive, transactional upgrade
+from earlier schemas without removing existing accounts or records.
 
 ## Run locally
 
@@ -37,8 +37,8 @@ Open http://localhost:5173. Vite proxies `/api` to `127.0.0.1:3001`.
 No demo users, default passwords, or fabricated reviews are seeded. The mentor
 directory starts empty. Authentication, profiles, skills, goals, mentor discovery,
 mentorships, challenges, passports, matching, roadmaps, peer exchanges, reports,
-and messaging have connected UI flows. The resource library remains sample
-content. Social login, password reset, email verification, file uploads,
+and messaging have connected UI flows. The resource library now uses a first-party catalog with personalized ranking,
+persistent saves/completion, and explicit helpful/not-for-me feedback. Social login, password reset, email verification, file uploads,
 scheduling, job matching, resume parsing, and WebSocket messaging are not
 implemented. Messages refresh every ten seconds while viewing the newest page.
 
@@ -209,11 +209,26 @@ someone already saved. Mentors see a notice that accepted reviews can be shared.
 
 Learning profile shape: `{ skills: string[], careerGoal: string, budget: number | null,
 availability: '' | 'immediate' | 'this-week' | 'next-week' | 'flexible' }`.
-Matching is deterministic: exact case-insensitive skills contribute 50%, budget
-20%, compatible/flexible availability 20%, and simple career-goal keyword overlap
-10%. Unset criteria are removed from the denominator. With no preferences, the
-score is zero and marked unconfigured. Scores describe preferences, not quality
-or likelihood of success. There is no external AI call or secret/API key needed.
+Mentor matching uses a local content model: equivalent skills receive full credit,
+curated adjacent skills receive partial credit, and TF-IDF/cosine similarity
+compares career/goal text with profiles. Base weights remain skills 50%, budget
+20%, availability 20%, and career text 10%; unset criteria are excluded. If there
+are no explicit interests, saved skill gaps are used. Active goal text is used
+when no explicit career goal is set. Cold starts with no context have zero
+scores and are labeled unconfigured. There are no external AI calls, embeddings
+services, or API keys. This is limited vocabulary/text matching, not an LLM or a
+validated prediction of mentoring quality. Unknown skill names match exactly
+after normalization; Java and JavaScript, C/C++/C#, and SQL/NoSQL stay distinct.
+
+Each member can label mentors and resources helpful or not-for-me. One current
+label per target is stored with a server-generated feature snapshot. Helpful
+items receive up to three extra points when context exists; dismissed items are
+hidden in the default UI and can be restored. After three ratings containing
+both labels, a regularized local learner adapts that member's ranking weights
+within 35% of the defaults. Only the latest 200 examples are used for fitting;
+all dismissal labels remain available. Mentor and resource feedback are learned
+separately. No other member's votes affect your scores. Resetting feedback removes
+its labels/training snapshots and restores base weights without deleting saves.
 
 Create a roadmap with `{ templateId, title? }` (`frontend`, `data`, or `product`).
 Creation atomically creates a path and four goals with milestones. Edit goals
@@ -234,3 +249,26 @@ Reports count challenges with at least one submission, currently accepted work,
 revision rounds, and distinct mentor-endorsed skills. They include a timestamped
 activity timeline and links to accepted evidence. They do not invent proficiency
 gains or infer learning hours from chat activity.
+
+## Personalized resources
+
+The server catalog contains eight checked first-party learning links, with no
+fabricated ratings, prices, or completion statistics. GET /api/resources returns
+resource metadata, score, reasons, context/feedback flags, and own saved/completed
+state. Ranking uses declared interests (55%), active goals/career text (25%),
+self-reported gaps (15%), and relevant self-reported difficulty fit (5%).
+Absent signals are excluded. Completed goals no longer contribute. Resource
+completion is a tracking choice, not independent evidence of competency.
+
+| Method | Route | Body / behavior |
+| --- | --- | --- |
+| GET | /api/resources | Own personalized catalog and state |
+| PUT | /api/resources/:id/state | { saved?: boolean, completed?: boolean }; preserves omitted fields |
+| PUT | /api/recommendation-feedback | { kind: 'mentor' or 'resource', targetId, value: 'helpful', 'not_for_me', or null } |
+| DELETE | /api/recommendation-feedback | { kind: 'mentor' or 'resource' }; reset own labels and learned weights |
+
+The resource UI includes Recommended, All, Saved, Completed, and Dismissed views.
+Recommended excludes completed and dismissed resources; cold-start users can
+explore the catalog. Filters operate on real categories, difficulty, and text.
+Skill aliases, relationship weights, and catalog entries are curated in
+[skillSimilarity.ts](./skillSimilarity.ts) and [resourceCatalog.ts](./resourceCatalog.ts).

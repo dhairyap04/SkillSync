@@ -183,7 +183,7 @@ test('mobile navigation opens every new feature without horizontal overflow', as
     await nav(page, 'Career roadmaps')
     await expect(page.getByRole('heading', { name: 'Career roadmaps', exact: true })).toBeVisible()
     await expect(page.getByRole('navigation', { name: 'Main navigation' })).toHaveCount(0)
-    for (const path of ['skills', 'goals', 'roadmaps', 'matches', 'mentorships', 'challenges', 'passport', 'exchanges', 'reports', 'messages']) {
+    for (const path of ['skills', 'goals', 'roadmaps', 'matches', 'mentorships', 'challenges', 'passport', 'exchanges', 'reports', 'messages', 'resources']) {
       await page.goto('/dashboard/' + path)
       await expect(page.locator('h1')).toBeVisible()
       await expect(page.getByRole('alert')).toHaveCount(0)
@@ -215,4 +215,58 @@ test('failed milestone writes show an error and restore the saved state', async 
     await page.reload()
     await expect(page.getByRole('checkbox', { name: 'Build a responsive page', exact: true })).toBeChecked()
   } finally { await context.close() }
+})
+
+test('recommendation feedback, equivalent skills, resource saves and completion persist', async ({ browser }) => {
+  const learnerContext = await browser.newContext(), mentorContext = await browser.newContext()
+  try {
+    await account(learnerContext, 'Recommender')
+    await account(mentorContext, 'Semantic', 'mentor')
+    const published = await mentorContext.request.put('/api/mentors/me', { headers, data: {
+      title: 'Frontend engineer', company: 'SkillSync', location: 'Edmonton', bio: 'React.js frontend applications',
+      skills: ['React.js'], experienceYears: 7, hourlyRate: 50, availabilityValue: 'flexible',
+    } })
+    expect(published.status()).toBe(200)
+    const page = await learnerContext.newPage()
+    const failures: string[] = []
+    page.on('pageerror', error => failures.push(error.message))
+    await page.goto('/dashboard/matches')
+    await page.getByLabel('Skills to learn (comma-separated)').fill('ReactJS')
+    await page.getByRole('button', { name: 'Save preferences', exact: true }).click()
+    const mentor = page.locator('section').filter({ has: page.getByRole('heading', { name: 'Semantic Tester', exact: true }) })
+    await expect(mentor.getByText('100% preference fit')).toBeVisible()
+    await expect(mentor.getByText('Relevant skills: ReactJS', { exact: true })).toBeVisible()
+    await mentor.getByRole('button', { name: 'Helpful', exact: true }).click()
+    await expect(mentor.getByRole('button', { name: 'Helpful', exact: true })).toHaveAttribute('aria-pressed', 'true')
+    await page.reload()
+    await expect(mentor.getByRole('button', { name: 'Helpful', exact: true })).toHaveAttribute('aria-pressed', 'true')
+    await mentor.getByRole('button', { name: 'Not for me', exact: true }).click()
+    await expect(page.getByRole('heading', { name: 'Semantic Tester', exact: true })).toHaveCount(0)
+    await page.getByRole('button', { name: 'Show dismissed mentors', exact: true }).click()
+    await mentor.getByRole('button', { name: 'Restore recommendation', exact: true }).click()
+    await expect(mentor.getByRole('button', { name: 'Not for me', exact: true })).toBeVisible()
+    await nav(page, 'Resources')
+    const react = page.locator('section').filter({ has: page.getByRole('heading', { name: 'React Quick Start', exact: true }) })
+    await expect(react.getByText('Matches your interests: ReactJS', { exact: true })).toBeVisible()
+    await expect(react.getByRole('link', { name: 'Open learning material ↗', exact: true })).toHaveAttribute('href', 'https://react.dev/learn')
+    await react.getByRole('button', { name: 'Save resource', exact: true }).click()
+    await expect(react.getByRole('button', { name: 'Unsave resource', exact: true })).toBeVisible()
+    await page.reload()
+    await page.getByLabel('Resource view', { exact: true }).selectOption('saved')
+    await expect(react.getByRole('button', { name: 'Unsave resource', exact: true })).toBeVisible()
+    await react.getByRole('button', { name: 'Mark completed', exact: true }).click()
+    await expect(react.getByRole('button', { name: 'Mark incomplete', exact: true })).toBeVisible()
+    await page.getByLabel('Resource view', { exact: true }).selectOption('recommended')
+    await expect(page.getByRole('heading', { name: 'React Quick Start', exact: true })).toHaveCount(0)
+    await page.getByLabel('Resource view', { exact: true }).selectOption('completed')
+    await react.getByRole('button', { name: 'Not for me', exact: true }).click()
+    await page.getByLabel('Resource view', { exact: true }).selectOption('dismissed')
+    await expect(react.getByRole('button', { name: 'Restore recommendation', exact: true })).toBeVisible()
+    await page.getByRole('button', { name: 'Reset resource feedback', exact: true }).click()
+    await expect(page.getByRole('heading', { name: 'React Quick Start', exact: true })).toHaveCount(0)
+    await page.getByLabel('Resource view', { exact: true }).selectOption('all')
+    await expect(react.getByRole('button', { name: 'Mark incomplete', exact: true })).toBeVisible()
+    await expect(react.getByRole('button', { name: 'Unsave resource', exact: true })).toBeVisible()
+    expect(failures).toEqual([])
+  } finally { await learnerContext.close(); await mentorContext.close() }
 })
