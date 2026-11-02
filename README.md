@@ -8,9 +8,9 @@ A modern, responsive React TypeScript application built with TailwindCSS for car
 
 - **User Authentication** - Secure login/signup with role-based access (Student/Mentor)
 - **Skills Tracking** - Visual progress tracking with evidence and goal setting
-- **Mentorship Matching** - AI-powered mentor discovery and connection system
+- **Mentorship Matching** - Explainable, preference-based mentor matching and connection requests
 - **Resource Library** - Curated learning resources with personalized recommendations
-- **Real-time Messaging** - Built-in chat system for mentor-student communication
+- **Private Messaging** - Saved conversations for active mentorships and peer exchanges, refreshed every 10 seconds
 - **Goal Management** - Kanban-style goal tracking with milestone management
 - **Profile Management** - Comprehensive user profiles with social links and achievements
 
@@ -95,7 +95,7 @@ src/
 
 ### Prerequisites
 
-- Node.js 18+
+- Node.js 22.13+ (required by the backend)
 - npm or yarn
 
 ### Installation
@@ -103,8 +103,8 @@ src/
 1. **Clone the repository**
 
    ```bash
-   git clone https://github.com/yourusername/skillsync-frontend.git
-   cd skillsync-frontend
+   git clone https://github.com/dhairyap04/SkillSync.git
+   cd SkillSync
    ```
 
 2. **Install dependencies**
@@ -113,7 +113,11 @@ src/
    npm install
    ```
 
-3. **Start development server**
+3. **Start the API and frontend in separate terminals**
+
+   ```bash
+   npm run dev:server
+   ```
 
    ```bash
    npm run dev
@@ -128,6 +132,26 @@ src/
 - `npm run build` - Build for production
 - `npm run preview` - Preview production build
 - `npm run lint` - Run ESLint
+
+## Backend
+
+The Express + SQLite API handles authentication, profiles, mentor discovery,
+skills, goals, mentorship requests, and messages. Signup/login, profile editing,
+skills, goals, mentor discovery, and private messaging are connected to the frontend.
+The resource library remains sample content. See the [backend guide](server/README.md) for setup, endpoints,
+configuration, deployment, and remaining limitations.
+
+## Practice, prove, and share
+
+- **Skill challenges:** mentors assign briefs, students submit linked work, and reviewers accept or request revisions with a preserved history.
+- **Skill passports:** publish mentor-reviewed evidence through a revocable link; private by default.
+- **Explainable matching:** compare relevant skills, hourly budget, availability, and career interests with visible scoring reasons.
+- **Career roadmaps:** choose a starting template and customize its saved goals and milestones.
+- **Peer exchanges:** match complementary teaching/learning offers, accept requests, and start private conversations.
+- **Progress reports:** see submitted and accepted challenges, revision rounds, endorsed skills, and activity timelines.
+
+Run `npm test` for API/filter tests. Run `npx playwright install chromium` then
+`npm run test:e2e` for browser journeys using an isolated in-memory test database.
 
 ## 📱 Responsive Design
 

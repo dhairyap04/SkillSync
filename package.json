@@ -5,27 +5,39 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "tsc && vite build && tsc -p server/tsconfig.json --noEmit false --outDir dist-server",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
-    "test": "node --test tests/*.test.mjs"
+    "test": "node --import tsx --test tests/*.test.mjs tests/*.test.ts",
+    "dev:server": "tsx watch server/index.ts",
+    "start:server": "node dist-server/server/index.js",
+    "typecheck:server": "tsc -p server/tsconfig.json",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
+    "@hookform/resolvers": "^5.9.2",
+    "clsx": "^2.0.0",
+    "cookie-parser": "^1.4.7",
+    "express": "^5.3.0",
+    "express-rate-limit": "^8.7.2",
+    "framer-motion": "^10.16.16",
+    "helmet": "^8.3.0",
+    "lucide-react": "^0.294.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-router-dom": "^6.20.1",
-    "react-hook-form": "^7.48.2",
-    "zod": "^3.22.4",
-    "@hookform/resolvers": "^3.3.2",
-    "zustand": "^4.4.7",
-    "framer-motion": "^10.16.16",
-    "lucide-react": "^0.294.0",
-    "recharts": "^2.8.0",
+    "react-hook-form": "^7.91.0",
     "react-hot-toast": "^2.4.1",
-    "clsx": "^2.0.0",
-    "tailwind-merge": "^2.0.0"
+    "react-router-dom": "^6.20.1",
+    "recharts": "^2.8.0",
+    "tailwind-merge": "^2.0.0",
+    "zod": "^4.6.7",
+    "zustand": "^4.4.7"
   },
   "devDependencies": {
+    "@playwright/test": "^1.64.1",
+    "@types/cookie-parser": "^1.4.10",
+    "@types/express": "^5.0.6",
+    "@types/node": "^22.20.5",
     "@types/react": "^18.2.37",
     "@types/react-dom": "^18.2.15",
     "@typescript-eslint/eslint-plugin": "^6.10.0",
@@ -37,7 +49,11 @@
     "eslint-plugin-react-refresh": "^0.4.4",
     "postcss": "^8.4.32",
     "tailwindcss": "^3.3.6",
+    "tsx": "^4.23.15",
     "typescript": "^5.2.2",
     "vite": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=22.13.0"
   }
 }

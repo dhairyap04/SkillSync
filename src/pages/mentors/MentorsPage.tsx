@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import {
   Search,
@@ -24,7 +24,11 @@ import { Badge } from '@/components/ui/Badge'
 import { Avatar } from '@/components/ui/Avatar'
 import { cn } from '@/lib/utils'
 
-import { filterMentors, type ExperienceLevel, type MentorAvailability } from "@/lib/mentorFilters"
+import { type ExperienceLevel, type MentorAvailability } from '@/lib/mentorFilters'
+import { api } from '@/lib/api'
+import type { MentorListing } from '@/types/api'
+import { useAuthStore } from '@/store/auth'
+import toast from 'react-hot-toast'
 
 const MentorsPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('')
@@ -55,108 +59,54 @@ const MentorsPage: React.FC = () => {
     { value: 'flexible', label: 'Flexible' }
   ]
 
-  const mentors = [
-    {
-      id: '1',
-      name: 'Alex Thompson',
-      title: 'Senior Product Manager',
-      company: 'Google',
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
-      location: 'San Francisco, CA',
-      rating: 4.9,
-      reviewCount: 47,
-      hourlyRate: 120,
-      experience: '8 years',
-      experienceYears: 8,
-      availabilityValue: 'this-week' as const,
-      availability: 'Available this week',
-      skills: ['Product Management', 'Leadership', 'Strategy', 'Agile'],
-      bio: 'Experienced product manager with 8+ years at top tech companies. I help professionals transition into PM roles and advance their careers.',
-      specializations: ['Career Transition', 'Product Strategy', 'Team Leadership'],
-      languages: ['English', 'Spanish'],
-      isVerified: true,
-      isOnline: true,
-      responseTime: 'Usually responds within 2 hours',
-      sessionCount: 156,
-      successRate: 94
-    },
-    {
-      id: '2',
-      name: 'Sarah Chen',
-      title: 'Lead UX Designer',
-      company: 'Figma',
-      avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face',
-      location: 'New York, NY',
-      rating: 4.8,
-      reviewCount: 32,
-      hourlyRate: 95,
-      experience: '6 years',
-      experienceYears: 6,
-      availabilityValue: 'immediate' as const,
-      availability: 'Available now',
-      skills: ['UI/UX Design', 'Figma', 'Design Systems', 'User Research'],
-      bio: 'Passionate about creating user-centered designs. I mentor designers at all levels and help them build strong portfolios.',
-      specializations: ['Portfolio Review', 'Design Systems', 'User Research'],
-      languages: ['English', 'Mandarin'],
-      isVerified: true,
-      isOnline: true,
-      responseTime: 'Usually responds within 1 hour',
-      sessionCount: 89,
-      successRate: 96
-    },
-    {
-      id: '3',
-      name: 'Michael Rodriguez',
-      title: 'Senior Software Engineer',
-      company: 'Microsoft',
-      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
-      location: 'Seattle, WA',
-      rating: 4.9,
-      reviewCount: 28,
-      hourlyRate: 110,
-      experience: '10 years',
-      experienceYears: 10,
-      availabilityValue: 'next-week' as const,
-      availability: 'Next week',
-      skills: ['React', 'TypeScript', 'Node.js', 'AWS', 'System Design'],
-      bio: 'Full-stack engineer with expertise in modern web technologies. I help developers level up their technical skills.',
-      specializations: ['Technical Interviews', 'System Design', 'Code Review'],
-      languages: ['English', 'Spanish'],
-      isVerified: true,
-      isOnline: false,
-      responseTime: 'Usually responds within 4 hours',
-      sessionCount: 124,
-      successRate: 92
-    },
-    {
-      id: '4',
-      name: 'Emily Johnson',
-      title: 'Data Science Manager',
-      company: 'Netflix',
-      avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face',
-      location: 'Los Angeles, CA',
-      rating: 4.7,
-      reviewCount: 19,
-      hourlyRate: 130,
-      experience: '7 years',
-      experienceYears: 7,
-      availabilityValue: 'flexible' as const,
-      availability: 'Flexible',
-      skills: ['Python', 'Machine Learning', 'Data Analysis', 'SQL', 'Statistics'],
-      bio: 'Data science leader helping professionals break into the field and advance their analytical skills.',
-      specializations: ['Career Transition', 'ML Projects', 'Data Visualization'],
-      languages: ['English'],
-      isVerified: true,
-      isOnline: true,
-      responseTime: 'Usually responds within 3 hours',
-      sessionCount: 67,
-      successRate: 89
+  const [mentors, setMentors] = useState<MentorListing[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [loadError, setLoadError] = useState('')
+  const [page, setPage] = useState(1)
+  const [total, setTotal] = useState(0)
+  const [reload, setReload] = useState(0)
+  const [connecting, setConnecting] = useState<string | null>(null)
+  const { user } = useAuthStore()
+  const filterKey = JSON.stringify([searchTerm, selectedSkills, selectedExperience, selectedAvailability, priceRange])
+  const [previousFilters, setPreviousFilters] = useState(filterKey)
+  if (previousFilters !== filterKey) {
+    setPreviousFilters(filterKey)
+    setPage(1)
+  }
+  useEffect(() => {
+    const controller = new AbortController()
+    setIsLoading(true)
+    setLoadError('')
+    const [search, skills, experience, availability, prices] = JSON.parse(filterKey)
+    const query = new URLSearchParams({ search, skills: skills.join(','), experience, availability,
+      minPrice: String(prices[0]), maxPrice: String(prices[1]), page: String(page) })
+    const timer = setTimeout(async () => {
+      try {
+        const response = await fetch('/api/mentors?' + query, { signal: controller.signal })
+        const body = await response.json()
+        if (!response.ok) throw new Error(body.message ?? 'Unable to load mentors')
+        setMentors(body.data)
+        setTotal(body.pagination.total)
+      } catch (error) {
+        if (!controller.signal.aborted) setLoadError(error instanceof Error ? error.message : 'Unable to load mentors')
+      } finally {
+        if (!controller.signal.aborted) setIsLoading(false)
+      }
+    }, 200)
+    return () => { clearTimeout(timer); controller.abort() }
+  }, [filterKey, page, reload])
+  const filteredMentors = isLoading || loadError ? [] : mentors
+  const connect = async (mentorId: string) => {
+    setConnecting(mentorId)
+    try {
+      await api('/mentorships', { method: 'POST', body: JSON.stringify({ mentorId }) })
+      toast.success('Mentorship request sent')
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Unable to send request')
+    } finally {
+      setConnecting(null)
     }
-  ]
-
-  const filteredMentors = filterMentors(mentors, {
-    searchTerm, selectedSkills, selectedExperience, selectedAvailability, priceRange
-  })
+  }
 
   const toggleSkill = (skill: string) => {
     setSelectedSkills(prev => 
@@ -345,10 +295,12 @@ const MentorsPage: React.FC = () => {
       >
         <div className="flex items-center justify-between mb-6">
           <p className="text-neutral-600">
-            {filteredMentors.length} mentor{filteredMentors.length !== 1 ? 's' : ''} found
+            {total} mentor{total !== 1 ? 's' : ''} found
           </p>
         </div>
 
+        {isLoading && <p role="status">Loading mentors…</p>}
+        {loadError && <div role="alert">{loadError} <Button onClick={() => setReload(value => value + 1)}>Retry</Button></div>}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {filteredMentors.map((mentor, index) => (
             <motion.div
@@ -435,7 +387,7 @@ const MentorsPage: React.FC = () => {
                           <Button variant="ghost" size="sm">
                             <Share2 className="h-4 w-4" />
                           </Button>
-                          <Button variant="primary" size="sm">
+                          <Button variant="primary" size="sm" disabled={user?.role !== 'student' || connecting !== null} onClick={() => void connect(mentor.id)}>
                             <MessageCircle className="h-4 w-4 mr-1" />
                             Connect
                           </Button>
@@ -449,8 +401,13 @@ const MentorsPage: React.FC = () => {
           ))}
         </div>
 
+        {!isLoading && !loadError && total > 20 && <div className="flex gap-3 mt-6">
+          <Button disabled={page === 1} onClick={() => setPage(value => value - 1)}>Previous</Button>
+          <span>Page {page} of {Math.ceil(total / 20)}</span>
+          <Button disabled={page * 20 >= total} onClick={() => setPage(value => value + 1)}>Next</Button>
+        </div>}
         {/* Empty State */}
-        {filteredMentors.length === 0 && (
+        {!isLoading && !loadError && filteredMentors.length === 0 && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}

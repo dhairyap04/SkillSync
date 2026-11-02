@@ -1,4 +1,11 @@
-import React from 'react'
+import MentorshipsPage from '@/pages/growth/MentorshipsPage'
+import ReportsPage from '@/pages/growth/ReportsPage'
+import ExchangesPage from '@/pages/growth/ExchangesPage'
+import RoadmapsPage from '@/pages/growth/RoadmapsPage'
+import MatchesPage from '@/pages/growth/MatchesPage'
+import PassportPage from '@/pages/growth/PassportPage'
+import ChallengesPage from '@/pages/growth/ChallengesPage'
+import React, { useEffect } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuthStore } from '@/store/auth'
 
@@ -9,8 +16,8 @@ import SignupPage from '@/pages/auth/SignupPage'
 
 // Dashboard Layout
 import DashboardLayout from '@/components/layout/DashboardLayout'
-import StudentDashboard from '@/pages/dashboard/StudentDashboard'
-import MentorDashboard from '@/pages/dashboard/MentorDashboard'
+import StudentDashboard from '@/pages/dashboard/ProgressDashboard'
+import MentorDashboard from '@/pages/dashboard/ProgressDashboard'
 
 // Feature Pages
 import SkillsPage from '@/pages/skills/SkillsPage'
@@ -41,7 +48,10 @@ const RoleBasedRoute: React.FC<{
 }
 
 function App() {
-  const { isAuthenticated, user } = useAuthStore()
+  const { isAuthenticated, isLoading, sessionError, restoreSession } = useAuthStore()
+  useEffect(() => { void restoreSession() }, [restoreSession])
+  if (isLoading) return <div className="p-8" role="status">Loading your session…</div>
+  if (sessionError) return <div className="p-8" role="alert">{sessionError} <button onClick={() => void restoreSession()}>Retry</button></div>
 
   return (
     <div className="App">
@@ -51,6 +61,7 @@ function App() {
         <Route path="/login" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <LoginPage />} />
         <Route path="/signup" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <SignupPage />} />
         
+        <Route path="/passport/:token" element={<PassportPage />} />
         {/* Protected Dashboard Routes */}
         <Route path="/dashboard" element={
           <ProtectedRoute>
@@ -69,9 +80,21 @@ function App() {
           <Route path="messages" element={<MessagesPage />} />
           <Route path="profile" element={<ProfilePage />} />
           <Route path="goals" element={<GoalsPage />} />
-          {/* Add more dashboard routes here */}
+          <Route path="challenges" element={<ChallengesPage />} />
+          <Route path="passport" element={<PassportPage />} />
+          <Route path="matches" element={<MatchesPage />} />
+          <Route path="roadmaps" element={<RoadmapsPage />} />
+          <Route path="exchanges" element={<ExchangesPage />} />
+          <Route path="reports" element={<ReportsPage />} />
+          <Route path="mentorships" element={<MentorshipsPage />} />
         </Route>
 
+        <Route path="/skills/*" element={<Navigate to="/dashboard/skills" replace />} />
+        <Route path="/goals/*" element={<Navigate to="/dashboard/goals" replace />} />
+        <Route path="/mentors/*" element={<Navigate to="/dashboard/mentors" replace />} />
+        <Route path="/messages/*" element={<Navigate to="/dashboard/messages" replace />} />
+        <Route path="/profile/*" element={<Navigate to="/dashboard/profile" replace />} />
+        <Route path="/resources/*" element={<Navigate to="/dashboard/resources" replace />} />
         {/* Catch all route */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/Input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { useAuthStore } from '@/store/auth'
 import toast from 'react-hot-toast'
+import { authApi } from '@/lib/api'
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -25,7 +26,8 @@ const LoginPage: React.FC = () => {
   const [searchParams] = useSearchParams()
   const { login } = useAuthStore()
   
-  const redirectTo = searchParams.get('redirect') || '/dashboard'
+  const requestedRedirect = searchParams.get('redirect')
+  const redirectTo = requestedRedirect?.startsWith('/dashboard') && !requestedRedirect.startsWith('//') ? requestedRedirect : '/dashboard'
 
   const {
     register,
@@ -38,33 +40,19 @@ const LoginPage: React.FC = () => {
   const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true)
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      // Mock user data
-      const mockUser = {
-        id: '1',
-        email: data.email,
-        firstName: 'John',
-        lastName: 'Doe',
-        role: 'student' as const,
-        isVerified: true,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      }
-      
-      login(mockUser)
+      const user = await authApi.login(data)
+      login(user)
       toast.success('Welcome back!')
       navigate(redirectTo)
     } catch (error) {
-      toast.error('Invalid credentials. Please try again.')
+      toast.error(error instanceof Error ? error.message : 'Please try again.')
     } finally {
       setIsLoading(false)
     }
   }
 
   const handleSocialLogin = (provider: string) => {
-    toast.success(`Signing in with ${provider}...`)
+    toast.error(`${provider} sign-in is not available yet. Use email and password.`)
     // Implement social login logic here
   }
 

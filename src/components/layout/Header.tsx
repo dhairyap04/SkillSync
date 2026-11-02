@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/Button'
 import { Avatar } from '@/components/ui/Avatar'
 import { useAuthStore } from '@/store/auth'
 import { cn } from '@/lib/utils'
+import toast from 'react-hot-toast'
 
 interface HeaderProps {
   variant?: 'landing' | 'dashboard'
@@ -32,9 +33,13 @@ const Header: React.FC<HeaderProps> = ({ variant = 'landing' }) => {
     { name: 'Pricing', href: '/#pricing' },
   ]
 
-  const handleLogout = () => {
-    logout()
-    setIsUserMenuOpen(false)
+  const handleLogout = async () => {
+    try {
+      await logout()
+      setIsUserMenuOpen(false)
+    } catch {
+      toast.error('Could not sign out. Please try again.')
+    }
   }
 
   if (variant === 'dashboard') {
@@ -94,7 +99,7 @@ const Header: React.FC<HeaderProps> = ({ variant = 'landing' }) => {
                       className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-strong border border-neutral-200 py-1 z-50"
                     >
                       <Link
-                        to="/profile"
+                        to="/dashboard/profile"
                         className="flex items-center px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-100"
                         onClick={() => setIsUserMenuOpen(false)}
                       >
@@ -102,7 +107,7 @@ const Header: React.FC<HeaderProps> = ({ variant = 'landing' }) => {
                         Profile
                       </Link>
                       <Link
-                        to="/settings"
+                        to="/dashboard/profile"
                         className="flex items-center px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-100"
                         onClick={() => setIsUserMenuOpen(false)}
                       >

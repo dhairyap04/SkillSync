@@ -1,5 +1,5 @@
-import React, { useState } from 'react'
-import { Outlet } from 'react-router-dom'
+import React, { useEffect, useState } from 'react'
+import { Outlet, useLocation } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Menu, X } from 'lucide-react'
 import Header from './Header'
@@ -9,6 +9,9 @@ import { Button } from '@/components/ui/Button'
 const DashboardLayout: React.FC = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
+  const location = useLocation()
+  useEffect(() => { setMobileMenuOpen(false) }, [location.pathname])
 
   return (
     <div className="min-h-screen bg-neutral-50">
@@ -24,6 +27,8 @@ const DashboardLayout: React.FC = () => {
           <Button
             variant="ghost"
             size="sm"
+            aria-label={mobileMenuOpen ? 'Close navigation' : 'Open navigation'}
+            aria-expanded={mobileMenuOpen}
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
             {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -56,7 +61,7 @@ const DashboardLayout: React.FC = () => {
         )}
 
         {/* Main Content */}
-        <div className="flex-1 flex flex-col min-h-screen">
+        <div className="flex-1 min-w-0 flex flex-col min-h-screen">
           {/* Desktop Header */}
           <div className="hidden lg:block">
             <Header variant="dashboard" />

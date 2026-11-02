@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { useAuthStore } from '@/store/auth'
 import toast from 'react-hot-toast'
+import { authApi } from '@/lib/api'
 
 const signupSchema = z.object({
   firstName: z.string().min(2, 'First name must be at least 2 characters'),
@@ -71,33 +72,19 @@ const SignupPage: React.FC = () => {
   const onSubmit = async (data: SignupFormData) => {
     setIsLoading(true)
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500))
-      
-      // Mock user data
-      const mockUser = {
-        id: '1',
-        email: data.email,
-        firstName: data.firstName,
-        lastName: data.lastName,
-        role: data.role,
-        isVerified: false,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      }
-      
-      login(mockUser)
+      const user = await authApi.signup({ firstName: data.firstName, lastName: data.lastName, email: data.email, password: data.password, role: data.role, agreeToTerms: data.agreeToTerms })
+      login(user)
       toast.success(`Welcome to SkillSync, ${data.firstName}!`)
       navigate('/dashboard')
     } catch (error) {
-      toast.error('Something went wrong. Please try again.')
+      toast.error(error instanceof Error ? error.message : 'Please try again.')
     } finally {
       setIsLoading(false)
     }
   }
 
   const handleSocialSignup = (provider: string) => {
-    toast.success(`Signing up with ${provider}...`)
+    toast.error(`${provider} sign-in is not available yet. Use email and password.`)
     // Implement social signup logic here
   }
 

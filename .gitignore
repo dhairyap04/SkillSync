@@ -168,3 +168,10 @@ playwright/.cache/
 # package-lock.json
 # yarn.lock
 # pnpm-lock.yaml
+
+# Backend database
+data/
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+dist-server/
